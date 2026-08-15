@@ -42,15 +42,20 @@ Units: millimeters, degrees.
 ```bash
 # from repo root
 python3 -m pip install -r requirements.txt
+
+# Interactive viewer (Three.js — drag hardpoints, orbit, live pose)
+python3 -m viewer.server
+# then open http://127.0.0.1:8000
+
+# Legacy Streamlit UI
 python3 -m streamlit run app.py
 ```
-
-Then open the URL Streamlit prints (usually http://localhost:8501).
 
 ## Project layout
 
 ```
-app.py                      # Streamlit UI
+app.py                      # Legacy Streamlit UI
+viewer/                     # Interactive Three.js + FastAPI viewer
 data/default_params.yaml    # Default vehicle & hardpoints
 docs/design-guide.md        # What we optimize for, and what each plot should look like
 src/
