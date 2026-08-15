@@ -1,0 +1,141 @@
+# Ariel Atom 3 — kinematic starting point
+# Coordinate system (right-hand):
+#   X: rearward (+ aft)
+#   Y: rightward (+ right) — template hardpoints use +Y for the LEFT corner;
+#      the right corner is mirrored to −Y.
+#   Z: upward (+ up)
+# Origin: ground plane, mid-track. Front axle X = 500, rear X = 2845 (wb 2345).
+# All dimensions in millimetres unless noted.
+#
+# ---------------------------------------------------------------------------
+# Published Atom 3 / 3.5 figures (used as-is)
+#   Wheelbase          2345 mm          [Wikipedia / Carfolio Atom 3.5]
+#   Track F / R        1600 / 1600 mm   [Carfolio; autoevolution]
+#   Length / width     3410 / 1798 mm   [Carfolio]  (wiki width 1890 includes mirrors)
+#   Height             1195 mm
+#   Ground clearance   ~102 mm listed; Sector 111 street ride height F 120 / R 115
+#   Tyres (this setup) Front 205/50R15 on 7J × 15
+#                      Rear  245/40R17 on 8.5J × 17
+#   UK Atom 3.5 stock was 195/50R15 both ends [Carfolio]; this is a staggered
+#   track-day package (taller/wider rear) requested as the working baseline.
+#   Camber (street)    F −1.0° / R −1.25°               [Sector 111 / atomchat]
+#   Toe (street)       F 2 mm total in / R 3 mm total in [Sector 111]
+#                      ≈ +0.10° / +0.15° per side on a 576 mm tyre
+#   Mass               456 kg claimed dry (early Atoms); ~520 kg used here as
+#                      a typical Atom 3 with fluids. Wiki curb 612 kg is wet/US.
+#   Layout             Mid-engine RWD, unequal-length double wishbone,
+#                      inboard pushrod + aluminium bellcrank BOTH ends
+#                      [Ariel / Wikipedia]. Rear is NOT a pullrod.
+#   Weight bias        ~40 / 60  (mid-engine; owner reports)
+#
+# Estimated (not published — fitted so the car is driveable AND Atom-like)
+#   Individual ball-joint / rack / rocker coordinates
+#   Castor ~6° F / ~5° R, KPI ~11°, small +scrub, conventional trail
+#   Castor ~6.7° F / ~6.3° R, KPI ~13° / ~11°, scrub ~9 mm F / ~18 mm R
+#   Conventional trail ~27 mm F (solver reports this as negative; +X is aft)
+#   Mild camber gain, rear a touch calmer; front bump steer ~0.14° / 30 mm
+#   Rear bump steer essentially flat (slight toe-in in bump)
+#   Rising-rate pushrod, damper shortens in jounce, no over-centre through ±40 mm
+#   Motion ratio ~3.3 at ride (estimated rocker; a real Atom is likely ~1.0–1.5)
+#   Roll centres above ground; front a little above rear (~29 / 25 mm)
+#   CG height ~300 mm (seats on the floor, mid engine)
+#   Wheel offset 35 mm F / 38 mm R (15×7 ET35 / 17×8.5 ET38 stand-in)
+#   Rear upright Z is +26 mm vs the 15" baseline so chassis ride height stays
+#   120/115 mm with the taller 17" tyre (same hub-to-ball-joint offsets).
+# ---------------------------------------------------------------------------
+
+vehicle:
+  wheelbase_mm: 2345
+  track_front_mm: 1600
+  track_rear_mm: 1600
+  ride_height_mm: 120
+  cg_height_mm: 300
+  mass_kg: 520
+  front_weight_bias: 0.40
+
+tire_front:
+  size: 205/50R15
+  radius_mm: 293.0        # 15×25.4/2 + 205×0.50
+  width_mm: 205
+  sidewall_mm: 102.5
+  wheel_diameter_in: 15
+  wheel_width_mm: 177.8   # 7J
+  offset_mm: 35
+
+tire_rear:
+  size: 245/40R17
+  radius_mm: 313.9        # 17×25.4/2 + 245×0.40
+  width_mm: 245
+  sidewall_mm: 98.0
+  wheel_diameter_in: 17
+  wheel_width_mm: 215.9   # 8.5J
+  offset_mm: 38
+
+# Front left — pushrod on lower wishbone, inboard vertical damper (Atom nose)
+front:
+  static_camber_deg: -1.00
+  static_toe_deg: 0.10
+
+  lower_front_chassis: [420, 265, 118]
+  lower_rear_chassis:  [600, 270, 122]
+  lower_outer:         [488, 762, 133]
+
+  upper_front_chassis: [445, 300, 318]
+  upper_rear_chassis:  [575, 305, 312]
+  upper_outer:         [516, 708, 373]
+
+  wheel_center:        [500, 800, 293]
+  # Toe link on the lower-arm instant axis → near-zero bump steer
+  tierod_inner:        [618, 270.5, 122.4]
+  tierod_outer:        [602, 732, 130]
+
+  rod_mode: pushrod
+  rod_wishbone: lower
+  rod_arm_point:       [500, 620, 142]
+  # Long-ish outboard rod arm so the pushrod is not a toggle (R+L >> rho)
+  # through ±40 mm. Damper arm up/inboard: bump shortens the coilover.
+  rod_rocker_point:    [500, 360, 380]
+  rocker_pivot:        [500, 220, 370]
+  rocker_damper_point: [500, 210, 460]
+  rocker_axis:         [1, 0, 0]
+  damper_body:         [500, 95, 560]
+  damper_length_mm:    175
+  arb_drop_link:       [500, 200, 360]
+
+# Rear left — also pushrod on lower wishbone (Atom, not a pullrod)
+rear:
+  static_camber_deg: -1.25
+  static_toe_deg: 0.15
+
+  lower_front_chassis: [2765, 255, 112]
+  lower_rear_chassis:  [2945, 260, 114]
+  lower_outer:         [2835, 760, 150]
+
+  # Upper inboards lowered vs the 15" baseline so the taller 17" rear tyre
+  # still gives a rear RC in the mid-20s (just under the front), not single digits.
+  upper_front_chassis: [2790, 268, 272]
+  upper_rear_chassis:  [2920, 273, 280]
+  upper_outer:         [2862, 722, 388]
+
+  wheel_center:        [2845, 800, 313.9]
+  # Toe link on the lower-arm instant axis (ahead of the axle)
+  tierod_inner:        [2728, 254.5, 111.8]
+  tierod_outer:        [2745, 728, 148]
+
+  rod_mode: pushrod
+  rod_wishbone: lower
+  rod_arm_point:       [2845, 615, 154]
+  rod_rocker_point:    [2845, 360, 375]
+  rocker_pivot:        [2845, 220, 365]
+  rocker_damper_point: [2845, 210, 455]
+  rocker_axis:         [1, 0, 0]
+  damper_body:         [2845, 95, 555]
+  damper_length_mm:    170
+  arb_drop_link:       [2845, 200, 355]
+
+analysis:
+  travel_min_mm: -40
+  travel_max_mm: 40
+  travel_steps: 41
+  roll_max_deg: 3.0
+  roll_steps: 21
