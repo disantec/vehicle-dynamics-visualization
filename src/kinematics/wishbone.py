@@ -555,6 +555,56 @@ def _alignment_metrics(
     return camber, toe, castor, kpi, scrub, trail
 
 
+def side_view_instant_center(hp: CornerHardpoints) -> Vec3:
+    """Side-view IC: intersection of upper and lower hinge axes in the XZ plane."""
+    lf, lr = hp.lower_front_chassis, hp.lower_rear_chassis
+    uf, ur = hp.upper_front_chassis, hp.upper_rear_chassis
+
+    def xz(p):
+        return np.array([p[0], p[2]], dtype=float)
+
+    a, b = xz(lf), xz(lr)
+    c, d = xz(uf), xz(ur)
+    A = np.column_stack([b - a, c - d])
+    try:
+        ts = np.linalg.lstsq(A, c - a, rcond=None)[0]
+        xz_ic = a + ts[0] * (b - a)
+        y = 0.25 * (lf[1] + lr[1] + uf[1] + ur[1])
+        return np.array([float(xz_ic[0]), float(y), float(xz_ic[1])])
+    except Exception:
+        return np.array([0.5 * (lf[0] + uf[0]), 0.5 * (lf[1] + uf[1]), 0.5 * (lf[2] + uf[2])])
+
+
+def anti_geometry_percent(
+    hp: CornerHardpoints,
+    wheelbase_mm: float,
+    cg_height_mm: float,
+    *,
+    axle: str,
+) -> float:
+    """Geometric anti-dive (front) or anti-squat (rear), percent.
+
+    Uses the side-view IC and the line from the contact patch. Positive when
+    the IC is above ground and on the side that resists dive (front, IC aft)
+    or squat (rear, IC forward). Assumes inboard/hub brakes and driven rear.
+    """
+    ic = side_view_instant_center(hp)
+    contact_x = float(hp.wheel_center[0])
+    dx = ic[0] - contact_x
+    dz = ic[2]
+    if abs(dx) < 1e-6 or cg_height_mm < 1e-6 or wheelbase_mm < 1e-6:
+        return 0.0
+    slope = dz / dx
+    # Front anti-dive: IC aft (+X) and above → slope > 0
+    # Rear anti-squat: IC forward (−X from rear contact) and above → slope < 0
+    if axle == "front":
+        useful = slope
+    else:
+        useful = -slope
+    pct = 100.0 * useful / (cg_height_mm / wheelbase_mm)
+    return float(pct)
+
+
 def compute_instant_center(hp: CornerHardpoints, lo: Vec3, uo: Vec3) -> Vec3:
     """2D front-view instant center from upper/lower arm lines (YZ plane)."""
     # Project arm hinge midpoints and outers into YZ

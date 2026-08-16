@@ -90,6 +90,8 @@ src/
   changing them.
 - Why the plots are shaped the way they are:
   [docs/design-guide.md](docs/design-guide.md).
+- 2026 FSAE Electric comparison and proposed competition-car targets:
+  [docs/fsae-2026-design-brief.md](docs/fsae-2026-design-brief.md).
 
 ## License
 

@@ -1,5 +1,9 @@
 # Suspension design guide
 
+FSAE Electric 2026 comparison, accepted Atom-packaging decisions, and the
+paused implementation list: [fsae-2026-design-brief.md](fsae-2026-design-brief.md).
+Those kinematic targets have not been written into the default hardpoints yet.
+
 What we are optimizing for in this visualizer, and what each change *feels*
 like. Open this next to the **Performance Plots** tab.
 
