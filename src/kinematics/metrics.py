@@ -11,6 +11,7 @@ import pandas as pd
 from src.geometry.hardpoints import VehicleParams
 from src.kinematics.wishbone import (
     CornerState,
+    anti_geometry_percent,
     roll_center_height,
     solve_full_car,
     sweep_vertical_travel,
@@ -86,6 +87,32 @@ def compute_metrics(params: VehicleParams) -> Metrics:
     fh0 = front_heave.iloc[(front_heave["travel_mm"]).abs().argmin()]
     rh0 = rear_heave.iloc[(rear_heave["travel_mm"]).abs().argmin()]
 
+    def ride_camber_deg_per_m(df: pd.DataFrame) -> float:
+        """Camber slope vs travel, deg per metre, around ride."""
+        win = df[df["travel_mm"].between(-15.0, 15.0)]
+        if len(win) < 3:
+            win = df
+        x = win["travel_mm"].to_numpy()
+        y = win["camber_deg"].to_numpy()
+        if np.ptp(x) < 1e-6:
+            return 0.0
+        # FSAE sheets report the magnitude toward more negative camber in bump.
+        return float(-np.polyfit(x, y, 1)[0] * 1000.0)
+
+    def bump_steer_range(df: pd.DataFrame, window: float = 25.0) -> float:
+        win = df[df["travel_mm"].between(-window, window)]
+        return float(win["toe_deg"].max() - win["toe_deg"].min())
+
+    def roll_camber_ratio(roll_df: pd.DataFrame, side: str) -> float:
+        """Jounce-side camber per deg body roll. Positive = more negative camber in roll."""
+        # In this model +roll puts the left wheel into jounce (see _axle_roll_table).
+        col = "camber_L" if side == "outside_right" else "camber_R"
+        x = roll_df["roll_deg"].to_numpy()
+        y = roll_df[col].to_numpy()
+        if np.ptp(x) < 1e-6:
+            return 0.0
+        return float(-np.polyfit(x, y, 1)[0])
+
     summary = {
         "FL camber (deg)": float(fl0["camber_deg"]),
         "FL toe (deg)": float(fl0["toe_deg"]),
@@ -103,6 +130,18 @@ def compute_metrics(params: VehicleParams) -> Metrics:
         "Rear roll center Z (mm)": float(rh0["roll_center_z_mm"]),
         "Front MR (avg L/R)": float(0.5 * (fl0["motion_ratio"] + fr0["motion_ratio"])),
         "Rear MR (avg L/R)": float(0.5 * (rl0["motion_ratio"] + rr0["motion_ratio"])),
+        "Front ride camber (deg/m)": ride_camber_deg_per_m(fl_df),
+        "Rear ride camber (deg/m)": ride_camber_deg_per_m(rl_df),
+        "Front roll camber (deg/deg)": roll_camber_ratio(front_roll, "outside_right"),
+        "Rear roll camber (deg/deg)": roll_camber_ratio(rear_roll, "outside_right"),
+        "FL bump steer range ±25mm (deg)": bump_steer_range(fl_df, 25.0),
+        "RL bump steer range ±25mm (deg)": bump_steer_range(rl_df, 25.0),
+        "Front anti-dive (%)": anti_geometry_percent(
+            params.front, params.wheelbase_mm, params.cg_height_mm, axle="front"
+        ),
+        "Rear anti-squat (%)": anti_geometry_percent(
+            params.rear, params.wheelbase_mm, params.cg_height_mm, axle="rear"
+        ),
     }
 
     return Metrics(
